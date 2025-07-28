@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { CreatePersonForm } from './CreatePersonForm';
 import { CreateCompanyForm } from './CreateCompanyForm';
+import { apiFetch } from '../utils/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const AUTH_API_KEY = import.meta.env.VITE_AUTH_API_KEY;
 
 interface Person {
   id: number;
@@ -29,30 +32,17 @@ export const PeopleList: React.FC = () => {
 
   useEffect(() => {
     fetchPeople();
-  }, []);
+  }, []); 
 
   const fetchPeople = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/people');
+      const response = await apiFetch('/people');
       const data = await response.json();
       setPeople(data);
     } catch (error) {
       console.error('Error fetching people:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const startResearch = async (personId: number): Promise<string | null> => {
-    try {
-      const response = await fetch(`http://localhost:3000/api/enrich/${personId}`, {
-        method: 'POST',
-      });
-      const data = await response.json();
-      return data.jobId;
-    } catch (error) {
-      console.error('Error starting research:', error);
-      return null;
     }
   };
 
@@ -82,7 +72,6 @@ export const PeopleList: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="mb-8">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900">People</h1>
@@ -113,7 +102,6 @@ export const PeopleList: React.FC = () => {
           </div>
         </div>
 
-        {/* Forms */}
         {showAddPerson && (
           <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
             <div className="relative">
@@ -136,7 +124,6 @@ export const PeopleList: React.FC = () => {
           </div>
         )}
 
-        {/* People List */}
         {people.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-gray-500 text-lg">No people found. Add some people to get started!</p>
@@ -181,7 +168,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person }) => {
     };
 
     try {
-      eventSource = new EventSource(`http://localhost:3000/api/events/jobs/${jobId}`);
+      eventSource = new EventSource(`${API_BASE_URL}/events/jobs/${jobId}?apiKey=${AUTH_API_KEY}`);;
       eventSource.onmessage = (event) => {
         const data = JSON.parse(event.data);
         setProgress(data.progress || 0);
@@ -207,7 +194,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person }) => {
   const startPolling = (jobId: string, onComplete: () => void) => {
     return setInterval(async () => {
       try {
-        const res = await fetch(`http://localhost:3000/api/research/jobs/${jobId}`);
+        const res = await apiFetch(`/research/jobs/${jobId}`);
         const data = await res.json();
         setProgress(data.progress || 0);
         if (data.state === 'completed') {
@@ -221,11 +208,11 @@ const PersonCard: React.FC<PersonCardProps> = ({ person }) => {
 
   const fetchResults = async () => {
   try {
-    const res = await fetch(`http://localhost:3000/api/snippets/company/${person.companyId}`);
+    const res = await apiFetch(`/snippets/company/${person.companyId}`);
     const data = await res.json();
 
     if (Array.isArray(data) && data.length > 0) {
-      setResults(data[data.length - 1]); // Use the most recent snippet
+      setResults(data[data.length - 1]);
     } else {
       setResults(null);
     }
@@ -242,17 +229,15 @@ const PersonCard: React.FC<PersonCardProps> = ({ person }) => {
     setErrorMessage(null);
     
     try {
-      const response = await fetch(`http://localhost:3000/api/enrich/${person.id}`, {
+      const response = await apiFetch(`/enrich/${person.id}`, {
         method: 'POST',
       });
       const data = await response.json();
       
       if (data.isExisting) {
-        // Research already exists, show it immediately
         setResults(data.data);
         setProgress(100);
       } else {
-        // New research started
         setJobId(data.jobId);
       }
     } catch (error) {

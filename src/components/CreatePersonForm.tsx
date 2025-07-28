@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../utils/api';
 
 interface Company {
   id: number;
@@ -29,7 +30,7 @@ export const CreatePersonForm: React.FC<CreatePersonFormProps> = ({
 
   const fetchCompanies = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/companies');
+      const response = await apiFetch('/companies');
       const data = await response.json();
       setCompanies(data);
     } catch (error) {
@@ -44,7 +45,7 @@ export const CreatePersonForm: React.FC<CreatePersonFormProps> = ({
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:3000/api/people', {
+      const response = await apiFetch('/people', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

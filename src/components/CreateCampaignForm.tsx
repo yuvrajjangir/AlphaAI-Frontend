@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { apiFetch } from '../utils/api';
 
 interface CreateCampaignFormProps {
   onCampaignCreated: () => void;
@@ -19,7 +20,7 @@ export const CreateCampaignForm: React.FC<CreateCampaignFormProps> = ({
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:3000/api/campaigns', {
+      const response = await apiFetch('/campaigns', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

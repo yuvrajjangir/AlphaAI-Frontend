@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { Company, Campaign } from '../types/company';
 import { CreateCampaignForm } from './CreateCampaignForm';
+import { apiFetch } from '../utils/api';
 
 interface CreateCompanyFormProps {
   onCompanyCreated: () => void;
@@ -21,7 +22,7 @@ export const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({
 
   const fetchCampaigns = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/campaigns');
+      const response = await apiFetch('/campaigns');
       if (!response.ok) {
         throw new Error('Failed to fetch campaigns');
       }
@@ -43,7 +44,7 @@ export const CreateCompanyForm: React.FC<CreateCompanyFormProps> = ({
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:3000/api/companies', {
+      const response = await apiFetch('/companies', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
